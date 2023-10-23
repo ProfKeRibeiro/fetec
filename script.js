@@ -55,16 +55,17 @@ function reiniciarJogo() {
     window.location.href = "index.html"; // Redireciona para a página de entrada
 }
 
-function getToken() {
-    fetch("token.json")
-      .then((response) => response.json())
-      .then((data) => {
-        token = data.token;
-      });
-  }
-  getToken();
+// function getToken() {
+//     fetch("token.json")
+//       .then((response) => response.json())
+//       .then((data) => {
+//         token = data.token;
+//       });
+//   }
+//   getToken();
 
 window.onSpotifyWebPlaybackSDKReady = () => {
+    token = 'BQCfcBS3qvNL8b3JzkePYq3OZ46CkQeCmbqwn5y28Ltft8Gt5-ZFv8H5r3IMWiUOLpWuOEka0xsgyrNTyQBHCJxNYgHgM6lXtm1_0R6sVZblSiPu8bcbkT8z7fHKd6hrr1R45ypcYDtF7eosQ4cEsS-hCIuJPj5ecORhSOh2rAw66zRBQH5Mss2XNwei_-R84OAl8IjG145znk2XjvDxMgy4fI0N'
     player = new Spotify.Player({
         name: "Web Playback SDK Quick Start Player",
         getOAuthToken: (cb) => {
