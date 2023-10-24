@@ -1,107 +1,74 @@
-let pontos = 0;
+function startGame() {
+  var apelido = document.getElementById("usuario").value;
+
+  if (apelido == "") {
+    alert("Informe um apelido");
+    return false;
+  } else {
+    var apelidos = JSON.parse(localStorage.getItem("apelidos")) || [];
+    apelidos.push(apelido);
+    localStorage.setItem("apelidos", JSON.stringify(apelidos));
+    window.location.href = "game.html";
+    return false;
+  }
+}
+
+function f_paginajogo() {
+  window.location.href = "game.html";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  document
+    .getElementById("start-game")
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      startGame();
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  document
+    .getElementById("ranking")
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      window.location.href = "ranking.html";
+    });
+});
+
 let player;
 let trackName;
+let pontos = 0;
+let contador_musicas = 0;
 let erros = 0;
-let jogos = {};
-let playTimeout;
-let tentativasOuvir = 0;
-let musicaAnterior;
 let connect_to_device;
-
-function startGame() {
-  if (trackName.includes("-")) {
-    const partes = trackName.split("-");
-    trackName = partes[0].trim();
-  }
-  trackName = trackName.trim();
-  return trackName;
-}
-
 function atualizarPontuacao() {
-  //a pontuação não pode ser menor que 0
-  if (pontos < 0) {
-    pontos = 0;
-  }
-  const pontuacaoElement = document.getElementById("score");
-  pontuacaoElement.innerText = `Pontuação: ${pontos}`;
+  const pontuacaoElement = document.getElementById("pontuacao");
+  pontuacaoElement.innerText = pontos;
 }
 
-function mostrarMensagem(mensagem) {
-  const mensagemContainer = document.getElementById("mensagem-container");
-  const mensagemElement = document.getElementById("mensagem");
-
-  mensagemContainer.classList.remove("hidden");
-
-  mensagemElement.innerText = mensagem;
+function decrementarPontos() {
+  if (pontos < 0) {
+    pontos = 0; // Garante que a pontuação não seja negativa
+  }
+  atualizarPontuacao();
 }
 
 function reiniciarJogo() {
-  mostrarMensagem("Você perdeu!");
-  setTimeout(() => {
-    window.location.href = "index.html";
-  }, 1000);
+  alert("Você perdeu o jogo!");
+  window.location.href = "index.html"; // Redireciona para a página de entrada
 }
 
-function extrairNomeDaMusica() {
-  if (trackName.includes("-")) {
-    const partes = trackName.split("-");
-    trackName = partes[0].trim();
-  }
-  trackName = trackName.trim();
-  return trackName;
+function getToken() {
+  fetch("token.json")
+    .then((response) => response.json())
+    .then((data) => {
+      token = data.token;
+    });
 }
-
-const tempoDaMusica = 15000;
-let stopTimeout;
-
-function playMusic() {
-  if (player.getCurrentState().position === 0) {
-    player.togglePlay();
-    playTimeout = setTimeout(() => {
-      if (player.getCurrentState().position === 0) {
-        player.pause();
-        if (trackName === musicaAnterior) {
-          tentativasOuvir++;
-          if (tentativasOuvir > 1) {
-            pontos -= 2;
-            atualizarPontuacao();
-          }
-        } else {
-          tentativasOuvir = 0;
-        }
-        musicaAnterior = trackName;
-      }
-    }, tempoDaMusica);
-    stopTimeout = setTimeout(() => {
-      player.pause();
-    }, tempoDaMusica);
-  } else {
-    player.togglePlay();
-    clearTimeout(playTimeout);
-    clearTimeout(stopTimeout);
-    playTimeout = setTimeout(() => {
-      if (player.getCurrentState().position !== 0) {
-        player.pause();
-      }
-    }, tempoDaMusica);
-    stopTimeout = setTimeout(() => {
-      player.pause();
-    }, tempoDaMusica);
-  }
-}
-
-// function getToken() {
-//     fetch("token.json")
-//       .then((response) => response.json())
-//       .then((data) => {
-//         token = data.token;
-//       });
-//   }
-//   getToken();
+getToken();
 
 window.onSpotifyWebPlaybackSDKReady = () => {
-  token =
-    "BQBMEw4mM0RLtww18xpB2_ET8V4aHnF6Ts5g0tad45kxXOWiXh55_V-4TZS5HVsOdhY3pLLecOI0sdJIBltHa-sJ8cgPoGGcuQVHjAhaYqf3RKDJRG-zknXy2lYEwmO30lLzY06bURrKbWhMknht3h1l3WtyM0lI4zxYOlbdOJNLaYfVHlEWVTZP8Ff0XuN3PAMZKqSfOfmY6nOEqUR4vJhBwlHK";
+  // token = 'BQAn5pM_sBC5SWUV-Bl_DDdkUX5jND6tALeDVhCtoZShKK-CAc-x1K_7jTO9EEXQnm2EppTnPysX8nvYLKPOU6g-id0deGWdYEeTfB8oXCJkpYxmza0iufyoo11Fgxaf4_tHXnngTCuGPlXGT5PWTzdJIgT6Nwjd7-2D_R5DkASdkWWu3671zhjJiMQ2Xg0T9Rpg8b-xm3r5PHDs5AQ9jn937IAk'
   player = new Spotify.Player({
     name: "Web Playback SDK Quick Start Player",
     getOAuthToken: (cb) => {
@@ -109,33 +76,24 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     },
     volume: 0.5,
   });
-
-  const musicasEJogos = {
-    "super mario bros. theme": "super mario",
-    "tetris theme": "tetris",
-    "donkey kong country theme": "donkey kong",
-    "crash bandicoot theme": "crash",
-    "san andreas theme song": "gta",
-    "bomberman theme (area 1)": "bomberman",
-    "god of war iii overture": "god of war",
-    "among us theme": "among us",
-    "genshin impact main theme": "genshin impact",
-    "free fire lobby: original": "free fire",
-  };
-
   //um array com os albuns que serão usados no jogo
   let album_uri = [
-    "spotify:playlist:0rEetDb8PbNZcjJ30SS51d",
-    "spotify:playlist:7ipjrgeonBt6MqTQeFT4TR",
-    "spotify:playlist:3xZtCKskNZaYgX4AV8n8I8",
+    "spotify:playlist:52zqBFUUiCkDhCwnbOgsiR",
+    "spotify:playlist:7KNmVw9v0nBKzjoEYcxzOh",
+    "spotify:playlist:7JLXnCNAsjCUsvQyD8kmK6",
   ];
   //função para escolher um album aleatorio do array
   let randomAlbum = album_uri[Math.floor(Math.random() * album_uri.length)];
   album_uri = randomAlbum;
-
+  //console.log(album_uri);
   player.addListener("ready", ({ device_id }) => {
     console.log("Ready with Device ID", device_id);
     connect_to_device = () => {
+      //espera o usuario selecionar o album para continuar
+      if (!album_uri) {
+        setTimeout(connect_to_device, 1000);
+        return;
+      }
       fetch(
         `https://api.spotify.com/v1/me/player/play?device_id=${device_id}`,
         {
@@ -152,84 +110,99 @@ window.onSpotifyWebPlaybackSDKReady = () => {
         .then((response) => console.log(response))
         .then((data) => {
           player.addListener("player_state_changed", ({ track_window }) => {
-            trackName = track_window.current_track.name.toLowerCase();
+            trackName = track_window.current_track.name;
+            trackName = trackName.toLowerCase();
+            //tira acentos e caracteres especiais
+            trackName = trackName
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "");
             console.log("Current Track:", trackName);
-
-            if (musicasEJogos[trackName]) {
-              jogos[trackName] = musicasEJogos[trackName];
-            }
           });
         });
     };
   });
   let isConnected;
   let click = 0;
-  let contador_musicas = 0;
+  let ispause;
+  function tocar(){
+    player.togglePlay();
+    setTimeout(() => {
+        player.pause();
+    }, 10000);
+    ispause = 1;
+  }
   document.getElementById("play-music").addEventListener("click", (e) => {
+    
     //previne que a pagina seja recarregada zerando a pontuação
     e.preventDefault();
-
     if (!isConnected) {
       connect_to_device();
       isConnected = true;
-    }
-    //verifica se o botão foi clicado mais de uma vez para perder pontos
-    if (click === 2) {
-        pontos -= 2;
-        atualizarPontuacao();
-        alert(
-          "Você perderá 2 pontos por não ter acertado a música no tempo suficiente."
-        );
-    }
-      if (click > 2) {
-        pontos -= 2;
-        atualizarPontuacao();
-        alert(
-          "Você perderá 2 pontos por não ter acertado a música no tempo suficiente."
-        );
-        player.pause();
-        clearTimeout();
-        setTimeout(() => {
-            player.togglePlay();
-        }, tempoDaMusica);
-        //verificar se musica n terminou, se a musica terminar perder o jogo
-        setTimeout(() => {
-            if (player.getCurrentState().position !== 0) {
-                player.pause();
-                reiniciarJogo();
-            }
-        }, tempoDaMusica);
-        }
+    }   
+    //verifica se o player está pausado ou não
     
+    console.log("click: " + click);
+
+    
+    if (ispause === 0){
+      pontos -= 2;
+      decrementarPontos();
+      alert(
+        "Você perderá 2 pontos por não ter acertado a música no tempo suficiente."
+      );
+      setTimeout(() => {
+        tocar();
+    }, 500);
+    ispause = 1;
+    }
     click++;
-    playMusic();
+    tocar();
+    ispause = 0;
   });
 
   document.getElementById("btn-resposta").addEventListener("click", (event) => {
     event.preventDefault();
     let resposta = document.getElementById("resposta").value;
-    resposta = resposta.toLowerCase();
-
-    if (jogos[trackName] && resposta === jogos[trackName]) {
+    //tira acentos e caracteres especiais
+    resposta = resposta
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    if (resposta == trackName) {
       alert("Você Acertou, Parabéns!");
       pontos += 10;
       atualizarPontuacao();
-      document.getElementById("resposta").value = "";
-      player.nextTrack();
-      setTimeout(() => {
-        document.getElementById("mensagem-container").classList.add("hidden");
-      }, 1300);
-
-      if (contador_musicas === 6) {
-        alert("PARABÉNS, Você finalizou o jogo!!!");
-      }
       contador_musicas++;
+      //console.log('contador:'+contador_musicas);
+
+      // nesse bloco é onde verifica-se o numero de musicas, exemplo: se 10 musicas, ele finaliza o jogo e insere a pontuação do jogador
+      if (contador_musicas === 8) {
+        alert("PARABÉNS, Você finalizou o jogo!!!");
+        var v_pontuacao =
+          JSON.parse(localStorage.getItem("pontos_jogador")) || [];
+        v_pontuacao.push(pontos);
+        localStorage.setItem("pontos_jogador", JSON.stringify(v_pontuacao));
+        window.location.href = "index.html";
+      }
+      // Avance para a próxima música
+      player.nextTrack();
+      // Reinicie o temporizador para pausar a próxima música após 10 segundos
+      setTimeout(() => {
+        player.pause();
+      }, 10000);
+      // Limpar a caixa de resposta
+      document.getElementById("resposta").value = "";
     } else {
+      document.getElementById("resposta").value = "";
       alert("Você errou, tente novamente!");
-      pontos -= 5;
-      atualizarPontuacao();
       erros++;
+      pontos -= 5;
+      decrementarPontos(); // Subtrai pontos quando o usuário erra
       if (erros === 3) {
+        var v_pontuacao =
+          JSON.parse(localStorage.getItem("pontos_jogador")) || [];
+        v_pontuacao.push(pontos);
+        localStorage.setItem("pontos_jogador", JSON.stringify(v_pontuacao));
         reiniciarJogo();
       }
     }
@@ -237,3 +210,73 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 
   player.connect();
 };
+
+document.addEventListener("DOMContentLoaded", function () {
+  var video = document.getElementById("background-video");
+  exibirRanking();
+
+  video.addEventListener("mouseenter", function () {
+    video.controls = true;
+  });
+
+  video.addEventListener("mouseleave", function () {
+    video.controls = false;
+  });
+});
+
+function exibirRanking() {
+  // Verifica se está na página do ranking
+  var listaRanking = document.getElementById("lista-ranking");
+  if (!listaRanking) {
+    // Se não estiver na página do ranking, não faz nada
+    return;
+  }
+
+  // pega todos os apelidos e pontuações registrados
+  var apelidos = JSON.parse(localStorage.getItem("apelidos")) || [];
+  var v_pontuacao = JSON.parse(localStorage.getItem("pontos_jogador")) || [];
+
+  if (apelidos.length === 0) {
+    // se não tiver apelidos, mostra a mensagem
+    listaRanking.innerHTML = "<li>Nenhum jogador registrado</li>";
+  } else {
+    // Cria um array de objetos representando jogadores
+    var jogadores = [];
+    for (var i = 0; i < apelidos.length; i++) {
+      jogadores.push({ apelido: apelidos[i], pontuacao: v_pontuacao[i] });
+    }
+
+    // Ordena os jogadores com base na pontuação (do maior para o menor)
+    jogadores.sort(function (a, b) {
+      return b.pontuacao - a.pontuacao;
+    });
+
+    // itera sobre os jogadores ordenados e cria os itens da lista
+    for (var j = 0; j < jogadores.length; j++) {
+      if (j <= 2) {
+        var jogadorItem = document.createElement("li");
+        jogadorItem.textContent =
+          jogadores[j].apelido + " - Pontuação: " + jogadores[j].pontuacao;
+        listaRanking.appendChild(jogadorItem);
+      }
+    }
+  }
+}
+
+function limparRanking() {
+  localStorage.clear();
+  window.location.reload();
+}
+
+function confirmExit() {
+  var confirmMessage =
+    "Tem certeza que deseja sair? Seus pontos serão perdidos.";
+  if (confirm(confirmMessage)) {
+    pontos = 0;
+    var v_pontuacao = JSON.parse(localStorage.getItem("pontos_jogador")) || [];
+    v_pontuacao.push(pontos);
+    localStorage.setItem("pontos_jogador", JSON.stringify(v_pontuacao));
+    // Redirecione para a página inicial
+    window.location.href = "index.html";
+  }
+}
