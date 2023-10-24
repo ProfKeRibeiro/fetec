@@ -108,6 +108,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     };
   });
   player.connect();
+  let click = 0;
   document.getElementById("play-music").addEventListener("click", (e) => {
     //previne que a pagina seja recarregada zerando a pontuação
     e.preventDefault();
@@ -116,12 +117,15 @@ window.onSpotifyWebPlaybackSDKReady = () => {
       connect_to_device();
       isConnected = true;
     }
-
+    if(click>1){
+      if (!player.getCurrentState().paused) {
+        alert2.classList.add("hidden");
+        ptsValendo = ptsValendo - 2;
+      }
+  }
     player.togglePlay();
     setTimeout(() => {
-      player.pause();
-      alert2.classList.add("hidden");
-      ptsValendo = ptsValendo - 5;
+      player.pause();      
     }, 15000);
 
     alert1.classList.add("hidden");
