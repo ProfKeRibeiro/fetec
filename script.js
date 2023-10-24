@@ -43,7 +43,6 @@ function atualizarPontuacao() {
 }
 
 function decrementarPontos() {
-    pontos -= 5;
     if (pontos < 0) {
         pontos = 0;  // Garante que a pontuação não seja negativa
     }
@@ -55,17 +54,17 @@ function reiniciarJogo() {
     window.location.href = "index.html"; // Redireciona para a página de entrada
 }
 
-// function getToken() {
-//     fetch("token.json")
-//       .then((response) => response.json())
-//       .then((data) => {
-//         token = data.token;
-//       });
-//   }
-//   getToken();
+function getToken() {
+    fetch("token.json")
+      .then((response) => response.json())
+      .then((data) => {
+        token = data.token;
+      });
+  }
+  getToken();
 
 window.onSpotifyWebPlaybackSDKReady = () => {
-    token = 'BQCfcBS3qvNL8b3JzkePYq3OZ46CkQeCmbqwn5y28Ltft8Gt5-ZFv8H5r3IMWiUOLpWuOEka0xsgyrNTyQBHCJxNYgHgM6lXtm1_0R6sVZblSiPu8bcbkT8z7fHKd6hrr1R45ypcYDtF7eosQ4cEsS-hCIuJPj5ecORhSOh2rAw66zRBQH5Mss2XNwei_-R84OAl8IjG145znk2XjvDxMgy4fI0N'
+    // token = 'BQAn5pM_sBC5SWUV-Bl_DDdkUX5jND6tALeDVhCtoZShKK-CAc-x1K_7jTO9EEXQnm2EppTnPysX8nvYLKPOU6g-id0deGWdYEeTfB8oXCJkpYxmza0iufyoo11Fgxaf4_tHXnngTCuGPlXGT5PWTzdJIgT6Nwjd7-2D_R5DkASdkWWu3671zhjJiMQ2Xg0T9Rpg8b-xm3r5PHDs5AQ9jn937IAk'
     player = new Spotify.Player({
         name: "Web Playback SDK Quick Start Player",
         getOAuthToken: (cb) => {
@@ -116,29 +115,32 @@ window.onSpotifyWebPlaybackSDKReady = () => {
         }
     });
 let isConnected;
+let click=0;
     document.getElementById("play-music").addEventListener('click', (e) => {
         //previne que a pagina seja recarregada zerando a pontuação
         e.preventDefault();
-
         if (!isConnected) {
               connect_to_device();
               isConnected = true;
         }
-        if (!player.paused) {
-            decrementarPontos();
+        if(click>1){
+            if (!player.getCurrentState().paused) {
+                pontos -= 2;
+                decrementarPontos();
+            }
         }
         player.togglePlay();
         setTimeout(() => {
             player.pause();
         }, 10000);
+    click++;
     });
 
     document.getElementById("btn-resposta").addEventListener('click', (event) => {
         event.preventDefault();
         let resposta = document.getElementById("resposta").value;
-        resposta.toLowerCase();
         //tira acentos e caracteres especiais
-        resposta.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+        resposta = resposta.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
         if (resposta == trackName) {
             alert("Você Acertou, Parabéns!");
             pontos += 10;
@@ -166,6 +168,7 @@ let isConnected;
             document.getElementById('resposta').value='';
             alert("Você errou, tente novamente!");
             erros++;
+            pontos -= 5;
             decrementarPontos();  // Subtrai pontos quando o usuário erra
             if (erros === 3) {
                 var v_pontuacao = JSON.parse(localStorage.getItem('pontos_jogador')) || [];
